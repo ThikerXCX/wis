@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <canvas id="myChart" width="400" height="400"></canvas>
+  </body>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    // Define 5 criteria and 7 alternatives
+    let criteria = ["Kualitas", "Harga", "Lokasi", "Fasilitas", "Reputasi"];
+    let alternatives = ["A", "B", "C", "D", "E", "F", "G"];
+
+    // Define fuzzy set values for each alternative on each criteria
+    let fuzzySet = [
+      {
+        alternative: "A",
+        Kualitas: { low: 0, mid: 0.3, high: 0.7 },
+        Harga: { low: 0, mid: 0.5, high: 1 },
+        Lokasi: { low: 0, mid: 0.2, high: 0.5 },
+        Fasilitas: { low: 0.2, mid: 0.5, high: 0.8 },
+        Reputasi: { low: 0.3, mid: 0.7, high: 1 },
+      },
+      {
+        alternative: "B",
+        Kualitas: { low: 0, mid: 0.5, high: 1 },
+        Harga: { low: 0.2, mid: 0.5, high: 0.8 },
+        Lokasi: { low: 0, mid: 0.3, high: 0.7 },
+        Fasilitas: { low: 0.2, mid: 0.5, high: 0.8 },
+        Reputasi: { low: 0.3, mid: 0.7, high: 1 },
+      },
+    ];
+
+    // Function to calculate the preference value for each alternative on each criteria
+    function tsukamoto(alternative, criteria) {
+      let pref = 0;
+      let fuzzyValue = fuzzySet.find((set) => set.alternative === alternative)[
+        criteria
+      ];
+      pref = (fuzzyValue.low + fuzzyValue.mid + fuzzyValue.high) / 3;
+      return pref;
+    }
+
+    // Calculate preference value for each alternative on each criteria
+    let prefValues = [];
+    for (let i = 0; i < alternatives.length; i++) {
+      let pref = {};
+      pref.alternative = alternatives[i];
+      for (let j = 0; j < criteria.length; j++) {
+        pref[criteria[j]] = tsukamoto(alternatives[i], criteria[j]);
+      }
+      prefValues.push(pref);
+    }
+
+    // Calculate total preference value for each alternative
+    let totalPref = [];
+    for (let i = 0; i < prefValues.length; i++) {
+      let sum = 0;
+      for (let j = 0; j < criteria.length; j++) {
+        sum += prefValues[i][criteria[j]];
+      }
+      totalPref.push({
+        alternative: prefValues[i].alternative,
+        totalPref: sum,
+      });
+    }
+
+    // Display the result in a chart
+    // Code to display chart goes here
+
+    // Find the best alternative
+    let bestAlternative = totalPref.reduce(
+      (best, current) => (current.totalPref > best.totalPref ? current : best),
+      { totalPref: 0 }
+    ).alternative;
+    console.log(bestAlternative);
+
+    console.log("Hasil perhitungan Tsukamoto: ");
+    console.log("Nilai preferensi setiap alternatif pada setiap kriteria: ");
+    console.log(prefValues);
+    console.log("Nilai total preferensi setiap alternatif: ");
+    console.log(totalPref);
+    console.log(`Alternatif terbaik adalah ${bestAlternative}.`);
+
+    var ctx = document.getElementById("myChart").getContext("2d");
+    var chart = new Chart(ctx, {
+      // The type of chart we want to create
+      type: "bar",
+
+      // The data for our dataset
+      data: {
+        labels: alternatives,
+        datasets: [
+          {
+            label: "Total Preferensi",
+            backgroundColor: "rgb(255, 99, 132)",
+            borderColor: "rgb(255, 99, 132)",
+            data: totalPref.map((alternative) => alternative.totalPref),
+          },
+        ],
+      },
+
+      // Configuration options go here
+      options: {},
+    });
+  </script>
+</html>
